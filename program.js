@@ -14,11 +14,29 @@ var parseKyotUrl = function(data) {
 
 var parsePlaylistPage = function(data) {
     $ = cheerio.load(data);
-    var hours = $(".entry-content").find("p").find("b")
-        .map(function(index, elem){
-            return $(elem).text();
+    var date = $(".entry-title").text();
+    var hours = $(".entry-content").find("p") //.find("b")
+        .map(function(index, elem) {
+            var title = $(elem).find('b').text();
+            var hourText = $(elem).text().split('\n');
+            hourText.splice(0, 1); // remove first element, which is the hour title
+            var songs = hourText.map(function (elem, index) {
+                var song = elem.split('/');
+                return {
+                    songTitle: song[1].trim(),
+                    songArtist: song[2].trim()
+                }
+            });
+            return {
+                title: title,
+                songs: songs
+            };
         }).get();
-    return hours;
+
+    return {
+        date: date,
+        hours: hours
+    };
 }
 
 request(kyotUrl, function (error, response, body) {
@@ -27,8 +45,8 @@ request(kyotUrl, function (error, response, body) {
     hrefs.forEach(function(playlistUrl) {
         request(playlistUrl, function (error, response, body) {
             if (!error && response.statusCode == 200) {
-                var hours = parsePlaylistPage(body);
-                console.log(hours)
+                var show = parsePlaylistPage(body);
+                console.log(show)
             }
         })
     })
