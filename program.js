@@ -12,9 +12,25 @@ var parseKyotUrl = function(data) {
     return hrefs;
 }
 
+var parsePlaylistPage = function(data) {
+    $ = cheerio.load(data);
+    var hours = $(".entry-content").find("p").find("b")
+        .map(function(index, elem){
+            return $(elem).text();
+        }).get();
+    return hours;
+}
+
 request(kyotUrl, function (error, response, body) {
   if (!error && response.statusCode == 200) {
     var hrefs = parseKyotUrl(body);
-    console.log(hrefs)
+    hrefs.forEach(function(playlistUrl) {
+        request(playlistUrl, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var hours = parsePlaylistPage(body);
+                console.log(hours)
+            }
+        })
+    })
   }
 })
