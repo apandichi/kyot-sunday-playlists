@@ -39,6 +39,11 @@ var parsePlaylistPage = function(data) {
     };
 }
 
+var fixGlitch = function(show) {
+    show.hours.splice(0, 1);
+    show.hours[0].title = 'Hour One';
+}
+
 request(kyotUrl, function (error, response, body) {
   if (!error && response.statusCode == 200) {
     var hrefs = parseKyotUrl(body);
@@ -46,7 +51,11 @@ request(kyotUrl, function (error, response, body) {
         request(playlistUrl, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 var show = parsePlaylistPage(body);
-                console.log(show)
+                if (show.date === 'October 26') {
+                    fixGlitch(show);
+                }
+
+                console.log(show.hours[0].songs[0].songTitle)
             }
         })
     })
