@@ -1,5 +1,6 @@
 var cheerio = require('cheerio')
 var request = require('request')
+var async = require('async')
 
 var kyotUrl = 'http://quietmusic.com/kyot-sunday-playlists';
 
@@ -44,20 +45,27 @@ var fixGlitch = function(show) {
     show.hours[0].title = 'Hour One';
 }
 
-request(kyotUrl, function (error, response, body) {
-  if (!error && response.statusCode == 200) {
-    var hrefs = parseKyotUrl(body);
-    hrefs.forEach(function(playlistUrl) {
-        request(playlistUrl, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                var show = parsePlaylistPage(body);
-                if (show.date === 'October 26') {
-                    fixGlitch(show);
-                }
+var convertPlaylistUrlToShow = function(playlistUrl, callback) {
+   request(playlistUrl, function (error, response, body) {
+       if (!error && response.statusCode == 200) {
+           var show = parsePlaylistPage(body);
+           if (show.date === 'October 26') {
+               fixGlitch(show);
+           }
+           callback(null, show) // null stands for error
+       }
+   });
+}
 
-                console.log(show.hours[0].songs[0].songTitle)
-            }
-        })
+var Kyot = function (callback) {
+    request(kyotUrl, function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+        var hrefs = parseKyotUrl(body);
+        async.map(hrefs, convertPlaylistUrlToShow, callback); // callback is called when all iterator functions have finished
+      }
     })
-  }
+};
+
+Kyot(function (err, shows) {
+    console.log(shows);
 })
