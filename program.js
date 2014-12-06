@@ -1,15 +1,20 @@
 var cheerio = require('cheerio')
 var request = require('request')
 var async = require('async')
+var bunyan = require('bunyan');
+
+var log = bunyan.createLogger({name: 'kyot-sunday-playlists'});
 
 var kyotUrl = 'http://quietmusic.com/kyot-sunday-playlists';
 
 var parseKyotUrl = function(data) {
+    log.info('Parsing kyot URL response');
     $ = cheerio.load(data);
     var hrefs = $(".entry-content").find("p").find("a")
         .map(function(index, elem){
             return $(elem).attr('href');
         }).get();
+    log.info('Done parsing kyot URL response. Hrefs: ' + hrefs);
     return hrefs;
 }
 
@@ -41,11 +46,13 @@ var parsePlaylistPage = function(data) {
 }
 
 var fixGlitch = function(show) {
+    log.info('Fixing glitch for show: ' + JSON.stringify(show));
     show.hours.splice(0, 1);
     show.hours[0].title = 'Hour One';
 }
 
 var convertPlaylistUrlToShow = function(playlistUrl, callback) {
+   log.info('Converting playlist URL to show: ' + playlistUrl);
    request(playlistUrl, function (error, response, body) {
        if (!error && response.statusCode == 200) {
            var show = parsePlaylistPage(body);
@@ -58,6 +65,7 @@ var convertPlaylistUrlToShow = function(playlistUrl, callback) {
 }
 
 var Kyot = function (callback) {
+    log.info('Making HTTP request to ' + kyotUrl);
     request(kyotUrl, function (error, response, body) {
       if (!error && response.statusCode == 200) {
         var hrefs = parseKyotUrl(body);
@@ -67,5 +75,5 @@ var Kyot = function (callback) {
 };
 
 Kyot(function (err, shows) {
-    console.log(shows);
+    log.info('Parsing complete, total shows ' + shows.length)
 })
