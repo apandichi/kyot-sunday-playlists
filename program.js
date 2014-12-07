@@ -2,7 +2,6 @@ var cheerio = require('cheerio')
 var request = require('request')
 var async = require('async')
 var bunyan = require('bunyan');
-
 var log = bunyan.createLogger({name: 'kyot-sunday-playlists'});
 
 var kyotUrl = 'http://quietmusic.com/kyot-sunday-playlists';
@@ -64,7 +63,7 @@ var convertPlaylistUrlToShow = function(playlistUrl, callback) {
    });
 }
 
-var Kyot = function (callback) {
+var getShows = function (callback) {
     log.info('Making HTTP request to ' + kyotUrl);
     request(kyotUrl, function (error, response, body) {
       if (!error && response.statusCode == 200) {
@@ -74,4 +73,6 @@ var Kyot = function (callback) {
     })
 };
 
-//:
+module.exports = {
+    getShows: getShows
+}
