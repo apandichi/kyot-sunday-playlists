@@ -74,6 +74,4 @@ var Kyot = function (callback) {
     })
 };
 
-Kyot(function (err, shows) {
-    log.info('Parsing complete, total shows ' + shows.length)
-})
+//:
